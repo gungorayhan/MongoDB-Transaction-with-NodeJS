@@ -1,0 +1,30 @@
+version: '3.0'
+services:
+  mongo:
+    image: mongo:latest
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--keyFile", "/data/keyfile", "--auth"]
+    ports:
+      - 27017:27017
+    volumes:
+      - ./init.js:/docker-entrypoint-initdb.d/init.js:ro
+      - ./mongo-keyfile:/data/keyfile:ro 
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    networks:
+      - my-network
+
+  node-app:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    depends_on:
+      - mongo
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
